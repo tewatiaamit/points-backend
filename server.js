@@ -141,16 +141,24 @@ app.get("/products", async (req, res) => {
 
 // Update Product
 app.put("/update-product", async (req, res) => {
-  try {
-    const { id, ...data } = req.body;
-
-    const product = await Product.findByIdAndUpdate(id, data, { new: true });
-
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    try {
+      const { id, name, points, image, active } = req.body;
+  
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        { name, points, image, active },
+        { new: true }
+      );
+  
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found ❌" });
+      }
+  
+      res.json(updatedProduct);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
 // Delete Product
 app.delete("/delete-product", async (req, res) => {
