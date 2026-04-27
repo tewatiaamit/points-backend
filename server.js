@@ -10,12 +10,14 @@ app.use(cors());
 
 console.log("SERVER FILE LOADED 🚀");
 
-// ✅ MongoDB Connection (IMPORTANT: db name added)
+// ✅ MongoDB Connection
 mongoose.connect("mongodb+srv://amittewatia_db_user:kRPL4vhgkbuQI97f@cluster0.3robjcx.mongodb.net/rewardsDB")
 .then(() => console.log("DB connected ✅"))
 .catch(err => console.log(err));
 
-// ✅ Schema
+// =======================
+// ✅ USER MODEL
+// =======================
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -24,35 +26,48 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-// ✅ Home
+// =======================
+// ✅ PRODUCT MODEL
+// =======================
+const productSchema = new mongoose.Schema({
+  name: String,
+  points: Number,
+  image: String,
+  active: Boolean
+});
+
+const Product = mongoose.model("Product", productSchema);
+
+// =======================
+// ✅ ROUTES
+// =======================
+
+// Home
 app.get("/", (req, res) => {
   res.send("Server working 🚀");
 });
 
-// ✅ Test
+// Test
 app.get("/test", (req, res) => {
-  console.log("TEST ROUTE HIT 🔥");
   res.send("Test working");
 });
 
-// ✅ Create User
+// =======================
+// 👤 USER APIs
+// =======================
+
+// Add User
 app.post("/add-user", async (req, res) => {
   try {
-    const newUser = new User({
-      name: req.body.name,
-      email: req.body.email,
-      points: req.body.points
-    });
-
+    const newUser = new User(req.body);
     await newUser.save();
-
     res.json({ message: "User added ✅" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Get User
+// Get User
 app.get("/user", async (req, res) => {
   try {
     const user = await User.findOne({ email: req.query.email });
@@ -65,7 +80,7 @@ app.get("/user", async (req, res) => {
   }
 });
 
-// ✅ Update Points
+// Update User Points
 app.put("/update-user", async (req, res) => {
   try {
     const { email, points } = req.body;
@@ -84,7 +99,7 @@ app.put("/update-user", async (req, res) => {
   }
 });
 
-// ✅ Delete User
+// Delete User
 app.delete("/delete-user", async (req, res) => {
   try {
     const { email } = req.body;
@@ -99,7 +114,60 @@ app.delete("/delete-user", async (req, res) => {
   }
 });
 
-// ✅ PORT FIX (Render ke liye important)
+// =======================
+// 🛍️ PRODUCT APIs
+// =======================
+
+// Add Product
+app.post("/add-product", async (req, res) => {
+  try {
+    const product = new Product(req.body);
+    await product.save();
+    res.json({ message: "Product added ✅" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Products
+app.get("/products", async (req, res) => {
+  try {
+    const products = await Product.find({ active: true });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Product
+app.put("/update-product", async (req, res) => {
+  try {
+    const { id, ...data } = req.body;
+
+    const product = await Product.findByIdAndUpdate(id, data, { new: true });
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Product
+app.delete("/delete-product", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    await Product.findByIdAndDelete(id);
+
+    res.json({ message: "Product deleted ❌" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =======================
+// 🚀 SERVER START
+// =======================
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
